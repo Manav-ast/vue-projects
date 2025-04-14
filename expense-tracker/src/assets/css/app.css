@@ -1,0 +1,15 @@
+/* assets/css/app.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+/* Add any additional global styles here */
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #10B981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* Additional utility classes can be added here */
