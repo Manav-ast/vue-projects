@@ -58,7 +58,9 @@
         {{ editMode ? 'Update Expense' : 'Add Expense' }}
       </Button>
 
-      <Button v-if="editMode" @click="cancelEdit" class="flex-1"> Cancel </Button>
+      <Button v-if="editMode" variant="secondary" @click="cancelEdit" class="flex-1">
+        Cancel
+      </Button>
     </div>
   </form>
 </template>

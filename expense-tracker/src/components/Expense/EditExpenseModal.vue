@@ -4,6 +4,7 @@
     :is-open="isOpen"
     title="Edit Expense"
     confirm-text="Update"
+    confirm-variant="secondary"
     @cancel="closeModal"
     @confirm="handleUpdate"
   >

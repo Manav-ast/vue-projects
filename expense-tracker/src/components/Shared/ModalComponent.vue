@@ -10,7 +10,7 @@
       </div>
       <div class="flex justify-end space-x-4">
         <Button @click="$emit('cancel')">Cancel</Button>
-        <Button variant="danger" @click="$emit('confirm')">{{ confirmText }}</Button>
+        <Button :variant="confirmVariant" @click="$emit('confirm')">{{ confirmText }}</Button>
       </div>
     </div>
   </div>
@@ -32,6 +32,10 @@ defineProps({
     type: String,
     default: 'Confirm',
   },
+  confirmVariant: {
+    type: String,
+    default: 'danger'
+  }
 })
 
 defineEmits(['cancel', 'confirm'])

@@ -13,9 +13,9 @@
         @focus="clearGroupErrorMessage"
       />
       <p v-if="groupErrorMessage" class="text-red-500 text-sm mb-2">{{ groupErrorMessage }}</p>
-      <button type="submit" class="w-full py-2 bg-green-500 text-white rounded hover:bg-green-600">
+      <Button type="submit" variant="primary" class="w-full">
         Add Group
-      </button>
+      </Button>
     </form>
 
     <div class="overflow-y-auto h-36 mt-6">
@@ -26,9 +26,9 @@
           class="flex justify-between items-center p-2 bg-gray-100 rounded"
         >
           {{ group }}
-          <button @click="showDeleteConfirmation('group', group)" class="text-red-600">
+          <Button variant="danger" @click="showDeleteConfirmation('group', group)" class="!p-1">
             <i class="fas fa-trash"></i>
-          </button>
+          </Button>
         </li>
       </ul>
     </div>
@@ -73,9 +73,9 @@
       />
       <p v-if="expenseErrors.date" class="text-red-500 text-sm mb-2">{{ expenseErrors.date }}</p>
 
-      <button type="submit" class="w-full py-2 bg-green-500 text-white rounded hover:bg-green-600">
+      <Button type="submit" variant="primary" class="w-full">
         Add Expense
-      </button>
+      </Button>
     </form>
   </div>
 </template>
@@ -85,6 +85,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useGroupStore } from '../stores/group'
 import { useExpenseStore } from '../stores/expense'
 import { useModalStore } from '../stores/modalStore'
+import Button from './Shared/ButtonComponent.vue'
 
 const groupStore = useGroupStore()
 const expenseStore = useExpenseStore()

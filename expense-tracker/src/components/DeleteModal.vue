@@ -8,18 +8,12 @@
         <h3 class="text-xl font-semibold mb-4">Confirm Deletion</h3>
         <p class="text-gray-600 mb-4">{{ modalStore.deleteTarget.message }}</p>
         <div class="flex justify-end space-x-4">
-          <button
-            @click="modalStore.hideModal"
-            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-          >
+          <Button @click="modalStore.hideModal" variant="secondary">
             Cancel
-          </button>
-          <button
-            @click="confirmDelete"
-            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-          >
+          </Button>
+          <Button @click="confirmDelete" variant="danger">
             Delete
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -30,6 +24,7 @@
 import { useModalStore } from '../stores/modalStore'
 import { useGroupStore } from '../stores/group'
 import { useExpenseStore } from '../stores/expense'
+import Button from './Shared/ButtonComponent.vue'
 
 const modalStore = useModalStore()
 const groupStore = useGroupStore()

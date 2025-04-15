@@ -43,13 +43,13 @@
             class="text-blue-600"
             @click="startEdit(group)"
             title="Edit Group">
-            ✏️
+            <i class="fa-solid fa-pen"></i>
           </button>
           <button
             class="text-red-600"
             @click="confirmDelete(group)"
             title="Delete Group">
-            🗑️
+            <font-awesome-icon icon="trash" />
           </button>
         </div>
       </li>

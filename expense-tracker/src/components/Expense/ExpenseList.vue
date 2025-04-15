@@ -5,20 +5,20 @@
       <h3 class="text-lg font-semibold">Expenses by Group</h3>
       <div v-if="showNavigation" class="flex gap-2">
         <!-- Conditional routing -->
-        <router-link 
-          v-if="$route.path !== '/'" 
-          to="/" 
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        <Button
+          v-if="$route.path !== '/'"
+          variant="secondary"
+          @click="$router.push('/')"
         >
           Go to Dashboard
-        </router-link>
-        <router-link 
-          v-if="$route.path !== '/expenses'" 
-          to="/expenses" 
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        </Button>
+        <Button
+          v-if="$route.path !== '/expenses'"
+          variant="secondary"
+          @click="$router.push('/expenses')"
         >
           All Expenses
-        </router-link>
+        </Button>
       </div>
     </div>
 
@@ -81,20 +81,22 @@
               <td class="py-2 px-4">{{ expense.date }}</td>
               <td class="py-2 px-4 text-center">
                 <div class="flex justify-center space-x-2">
-                  <button
-                    class="text-blue-600"
+                  <Button
+                    variant="secondary"
                     @click="handleEdit(expense)"
+                    class="!p-1 text-blue-600"
                     title="Edit Expense"
                   >
-                    ✏️
-                  </button>
-                  <button
-                    class="text-red-600"
+                    <i class="fa-solid fa-pen"></i>
+                  </Button>
+                  <Button
+                  variant="danger"
                     @click="confirmDelete(expense)"
+                    class="!p-1"
                     title="Delete Expense"
                   >
-                    🗑️
-                  </button>
+                    <font-awesome-icon icon="trash" />
+                  </Button>
                 </div>
               </td>
             </tr>
