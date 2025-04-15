@@ -1,32 +1,22 @@
 <!-- views/DashboardView.vue -->
 <template>
-  <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-lg flex flex-col md:flex-row">
-    <!-- Left Section (Smaller) -->
-    <div class="w-full md:w-1/4 p-4 border-r-2 border-gray-200">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-semibold">Expense Tracker</h1>
-      </div>
-
-      <GroupForm />
-      <ExpenseForm ref="expenseFormRef" />
-    </div>
-
+  <div class="dashboard">
     <!-- Right Section -->
-    <div class="flex-1 sm:w-full md:w-3/4 p-4">
-      <h2 class="text-xl font-semibold text-center mb-6">Dashboard</h2>
+    <div class="main-content">
+      <h2 class="dashboard-title">Dashboard Overview</h2>
 
-      <div class="flex flex-col sm:flex-row sm:space-x-4 mb-6">
-        <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center mb-4 sm:mb-0">
-          <p class="text-sm">Lifetime Expenses:</p>
-          <span class="font-semibold text-lg">₹ {{ expenseStore.lifetimeTotal }}</span>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <p class="stat-label">Lifetime Expenses</p>
+          <span class="stat-value">₹ {{ expenseStore.lifetimeTotal }}</span>
         </div>
-        <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center mb-4 sm:mb-0">
-          <p class="text-sm">Total this Month:</p>
-          <span class="font-semibold text-lg">₹ {{ expenseStore.monthlyTotal }}</span>
+        <div class="stat-card">
+          <p class="stat-label">Total this Month</p>
+          <span class="stat-value">₹ {{ expenseStore.monthlyTotal }}</span>
         </div>
-        <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center">
-          <p class="text-sm">Highest this Month:</p>
-          <span class="font-semibold text-lg">₹ {{ expenseStore.highestMonthlyExpense }}</span>
+        <div class="stat-card">
+          <p class="stat-label">Highest this Month</p>
+          <span class="stat-value">₹ {{ expenseStore.highestMonthlyExpense }}</span>
         </div>
       </div>
 
@@ -35,6 +25,7 @@
         :show-header="false" 
         :show-navigation="false"
         :use-form-edit="true"
+        class="expense-list"
       />
     </div>
   </div>
@@ -43,8 +34,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useExpenseStore } from '../stores/expense'
-import GroupForm from '../components/Expense/GroupForm.vue'
-import ExpenseForm from '../components/Expense/ExpenseForm.vue'
 import ExpenseList from '../components/Expense/ExpenseList.vue'
 
 const expenseStore = useExpenseStore()
@@ -69,3 +58,80 @@ onMounted(() => {
   expenseStore.loadExpenses()
 })
 </script>
+
+<style scoped>
+.dashboard {
+  flex: 1;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.dashboard-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-card {
+  background-color: var(--surface-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.expense-list {
+  background-color: var(--surface-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 640px) {
+  .main-content {
+    padding: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+}
+</style>

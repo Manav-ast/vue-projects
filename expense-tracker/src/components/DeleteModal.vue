@@ -2,16 +2,17 @@
   <Teleport to="body">
     <div
       v-if="modalStore.isModalVisible"
-      class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
+      class="modal-overlay"
+      @click="modalStore.hideModal"
     >
-      <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
-        <h3 class="text-xl font-semibold mb-4">Confirm Deletion</h3>
-        <p class="text-gray-600 mb-4">{{ modalStore.deleteTarget.message }}</p>
-        <div class="flex justify-end space-x-4">
-          <Button @click="modalStore.hideModal" variant="secondary">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">Confirm Deletion</h3>
+        <p class="modal-message">{{ modalStore.deleteTarget.message }}</p>
+        <div class="modal-actions">
+          <Button @click="modalStore.hideModal" variant="secondary" class="btn btn-secondary">
             Cancel
           </Button>
-          <Button @click="confirmDelete" variant="danger">
+          <Button @click="confirmDelete" variant="danger" class="btn btn-danger">
             Delete
           </Button>
         </div>
@@ -43,3 +44,75 @@ function confirmDelete() {
   modalStore.hideModal()
 }
 </script>
+
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal-content {
+  background-color: var(--surface-color);
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(0);
+  transition: transform 0.2s ease;
+  animation: modal-appear 0.2s ease;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.modal-message {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btn-danger {
+  background-color: var(--error-color) !important;
+  color: white !important;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626 !important;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-content {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+}
+</style>

@@ -64,7 +64,7 @@
           class="min-w-full bg-gray-100 border border-gray-300 rounded-lg mt-2 overflow-hidden"
         >
           <thead>
-            <tr class="bg-green-500 text-white rounded-t-lg">
+            <tr class="bg-blue-600 text-white rounded-t-lg">
               <th class="py-2 px-4 text-left">Expense Name</th>
               <th class="py-2 px-4 text-left">Amount</th>
               <th class="py-2 px-4 text-left">Date</th>

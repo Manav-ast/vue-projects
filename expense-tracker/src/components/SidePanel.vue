@@ -1,82 +1,93 @@
 <template>
-  <div class="w-full md:w-1/4 p-4 border-r-2 border-gray-200">
-    <h1 class="text-3xl font-semibold text-center mb-6">Expense Tracker</h1>
+  <div class="side-panel">
+    <h1 class="app-title">Expense Tracker</h1>
 
     <!-- Group Management -->
-    <h2 class="text-xl text-center mb-4">Group Management</h2>
-    <form @submit.prevent="addGroup">
-      <input
-        v-model="newGroup"
-        type="text"
-        class="w-full p-2 mb-4 border border-gray-300 rounded"
-        placeholder="Group Name"
-        @focus="clearGroupErrorMessage"
-      />
-      <p v-if="groupErrorMessage" class="text-red-500 text-sm mb-2">{{ groupErrorMessage }}</p>
-      <Button type="submit" variant="primary" class="w-full">
-        Add Group
-      </Button>
-    </form>
+    <div class="section">
+      <h2 class="section-title">Group Management</h2>
+      <form @submit.prevent="addGroup" class="form-group">
+        <input
+          v-model="newGroup"
+          type="text"
+          class="input"
+          placeholder="Group Name"
+          @focus="clearGroupErrorMessage"
+        />
+        <p v-if="groupErrorMessage" class="error-message">{{ groupErrorMessage }}</p>
+        <Button type="submit" variant="primary" class="btn btn-primary w-full">
+          Add Group
+        </Button>
+      </form>
 
-    <div class="overflow-y-auto h-36 mt-6">
-      <ul class="space-y-2">
-        <li
-          v-for="group in groups"
-          :key="group"
-          class="flex justify-between items-center p-2 bg-gray-100 rounded"
-        >
-          {{ group }}
-          <Button variant="danger" @click="showDeleteConfirmation('group', group)" class="!p-1">
-            <i class="fas fa-trash"></i>
-          </Button>
-        </li>
-      </ul>
+      <div class="groups-list">
+        <ul>
+          <li
+            v-for="group in groups"
+            :key="group"
+            class="group-item"
+          >
+            <span class="group-name">{{ group }}</span>
+            <Button variant="danger" @click="showDeleteConfirmation('group', group)" class="delete-btn">
+              <i class="fas fa-trash"></i>
+            </Button>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- Expense Management -->
-    <h2 class="text-xl text-center mt-6 mb-4">Expense Management</h2>
-    <form @submit.prevent="addExpense">
-      <select
-        v-model="newExpense.group"
-        class="w-full p-2 mb-4 border border-gray-300 rounded"
-        @focus="clearExpenseErrorMessage('group')"
-      >
-        <option v-for="group in groups" :key="group" :value="group">{{ group }}</option>
-      </select>
-      <p v-if="expenseErrors.group" class="text-red-500 text-sm mb-2">{{ expenseErrors.group }}</p>
+    <div class="section">
+      <h2 class="section-title">Expense Management</h2>
+      <form @submit.prevent="addExpense" class="form-group">
+        <div class="form-field">
+          <select
+            v-model="newExpense.group"
+            class="input"
+            @focus="clearExpenseErrorMessage('group')"
+          >
+            <option value="" disabled selected>Select Group</option>
+            <option v-for="group in groups" :key="group" :value="group">{{ group }}</option>
+          </select>
+          <p v-if="expenseErrors.group" class="error-message">{{ expenseErrors.group }}</p>
+        </div>
 
-      <input
-        v-model="newExpense.name"
-        type="text"
-        class="w-full p-2 mb-4 border border-gray-300 rounded"
-        placeholder="Expense Name"
-        @focus="clearExpenseErrorMessage('name')"
-      />
-      <p v-if="expenseErrors.name" class="text-red-500 text-sm mb-2">{{ expenseErrors.name }}</p>
+        <div class="form-field">
+          <input
+            v-model="newExpense.name"
+            type="text"
+            class="input"
+            placeholder="Expense Name"
+            @focus="clearExpenseErrorMessage('name')"
+          />
+          <p v-if="expenseErrors.name" class="error-message">{{ expenseErrors.name }}</p>
+        </div>
 
-      <input
-        v-model.number="newExpense.amount"
-        type="number"
-        class="w-full p-2 mb-4 border border-gray-300 rounded"
-        placeholder="Amount"
-        @focus="clearExpenseErrorMessage('amount')"
-      />
-      <p v-if="expenseErrors.amount" class="text-red-500 text-sm mb-2">
-        {{ expenseErrors.amount }}
-      </p>
+        <div class="form-field">
+          <input
+            v-model.number="newExpense.amount"
+            type="number"
+            class="input"
+            placeholder="Amount"
+            @focus="clearExpenseErrorMessage('amount')"
+          />
+          <p v-if="expenseErrors.amount" class="error-message">{{ expenseErrors.amount }}</p>
+        </div>
 
-      <input
-        v-model="newExpense.date"
-        type="date"
-        class="w-full p-2 mb-4 border border-gray-300 rounded"
-        @focus="clearExpenseErrorMessage('date')"
-      />
-      <p v-if="expenseErrors.date" class="text-red-500 text-sm mb-2">{{ expenseErrors.date }}</p>
+        <div class="form-field">
+          <input
+            v-model="newExpense.date"
+            type="date"
+            class="input"
+            @focus="clearExpenseErrorMessage('date')"
+          />
+          <p v-if="expenseErrors.date" class="error-message">{{ expenseErrors.date }}</p>
+        </div>
 
-      <Button type="submit" variant="primary" class="w-full">
-        Add Expense
-      </Button>
-    </form>
+        <Button type="submit" variant="primary" class="btn btn-primary w-full">
+          Add Expense
+        </Button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -210,3 +221,129 @@ function showDeleteConfirmation(type, group) {
   })
 }
 </script>
+
+<style scoped>
+.side-panel {
+  width: 100%;
+  max-width: 400px;
+  height: 100vh;
+  padding: 2rem;
+  background-color: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+}
+
+.app-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.error-message {
+  font-size: 0.875rem;
+  color: var(--error-color);
+}
+
+.groups-list {
+  margin-top: 1.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.groups-list ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.group-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background-color: var(--hover-color);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.group-item:hover {
+  background-color: var(--border-color);
+}
+
+.group-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.delete-btn {
+  padding: 0.5rem !important;
+  color: var(--error-color);
+  background-color: transparent;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-secondary);
+}
+</style>
