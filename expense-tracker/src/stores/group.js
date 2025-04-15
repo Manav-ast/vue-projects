@@ -1,6 +1,6 @@
 // store/group.js
 import { defineStore } from 'pinia'
-import { useExpenseStore } from './expense'
+import { useExpenseStore } from './expense.js'
 
 export const useGroupStore = defineStore('group', {
   state: () => ({
@@ -22,6 +22,27 @@ export const useGroupStore = defineStore('group', {
         return { success: true }
       }
       return { success: false, error: 'Group already exists!' }
+    },
+
+    updateGroup(oldGroupName, newGroupName) {
+      if (oldGroupName === newGroupName) {
+        return { success: true }
+      }
+
+      if (!this.groups.includes(newGroupName)) {
+        const index = this.groups.indexOf(oldGroupName)
+        if (index !== -1) {
+          this.groups[index] = newGroupName
+          localStorage.setItem('groups', JSON.stringify(this.groups))
+
+          // Update the group name in all related expenses
+          const expenseStore = useExpenseStore()
+          expenseStore.updateExpenseGroup(oldGroupName, newGroupName)
+
+          return { success: true }
+        }
+      }
+      return { success: false, error: 'Group name already exists or original group not found' }
     },
 
     deleteGroup(groupName) {
