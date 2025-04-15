@@ -123,8 +123,6 @@ const validateForm = () => {
 }
 
 const handleSubmit = () => {
-  console.log('Form submitted. Edit mode:', editMode.value, 'Original:', originalExpense.value)
-
   if (validateForm()) {
     const newExpense = {
       group: form.group,
@@ -136,13 +134,9 @@ const handleSubmit = () => {
     let result
 
     if (editMode.value && originalExpense.value) {
-      console.log('Updating expense:', originalExpense.value, 'to', newExpense)
       result = expenseStore.updateExpense(originalExpense.value, newExpense)
-      console.log('Update result:', result)
     } else {
-      console.log('Adding new expense:', newExpense)
       result = expenseStore.addExpense(newExpense)
-      console.log('Add result:', result)
     }
 
     if (result.success) {
@@ -152,7 +146,6 @@ const handleSubmit = () => {
     } else {
       // Show the error message in the form
       errors.name = result.error || 'An error occurred while saving the expense'
-      console.error('Error saving expense:', result.error)
     }
   }
 }
@@ -176,46 +169,21 @@ const cancelEdit = () => {
 }
 
 const startEdit = (expense) => {
-  console.log('Starting edit for expense:', expense)
-
   if (!expense) {
     console.error('No expense provided for editing')
     return
   }
 
-  // Convert Proxy to plain object if needed
-  const plainExpense = JSON.parse(JSON.stringify(expense))
-
-  // Ensure we have all required fields
-  if (!plainExpense.group || !plainExpense.name || !plainExpense.amount || !plainExpense.date) {
-    console.error('Invalid expense data:', plainExpense)
-    return
-  }
-
-  // Set form values
-  form.group = plainExpense.group
-  form.name = plainExpense.name
-  form.amount = plainExpense.amount
-  form.date = plainExpense.date
+  // Set form values directly from the expense object
+  form.group = expense.group
+  form.name = expense.name
+  form.amount = expense.amount
+  form.date = expense.date
 
   // Store a copy of the original expense
-  originalExpense.value = {
-    group: plainExpense.group,
-    name: plainExpense.name,
-    amount: plainExpense.amount,
-    date: plainExpense.date,
-  }
+  originalExpense.value = { ...expense }
 
   editMode.value = true
-
-  console.log(
-    'Form updated:',
-    form,
-    'Original:',
-    originalExpense.value,
-    'Edit mode:',
-    editMode.value,
-  )
 }
 
 // Expose the startEdit method for the parent component

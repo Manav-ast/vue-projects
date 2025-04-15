@@ -1,9 +1,9 @@
 <!-- components/Expense/ExpenseList.vue -->
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
+    <div v-if="showHeader" class="flex justify-between items-center mb-6">
       <h3 class="text-lg font-semibold">Expenses by Group</h3>
-      <div class="flex gap-2">
+      <div v-if="showNavigation" class="flex gap-2">
         <!-- Conditional routing -->
         <router-link 
           v-if="$route.path !== '/'" 
@@ -122,6 +122,7 @@
     </Modal>
 
     <EditExpenseModal
+      v-if="!useFormEdit"
       :is-open="showEditModal"
       :expense="expenseToEdit"
       @close="closeEditModal"
@@ -131,15 +132,28 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, defineEmits } from 'vue'
+import { ref, computed, watch, onMounted, defineEmits, defineProps } from 'vue'
 import { useExpenseStore } from '../../stores/expense.js'
-import { useRoute } from 'vue-router'
 import Button from '../Shared/ButtonComponent.vue'
 import Modal from '../Shared/ModalComponent.vue'
 import EditExpenseModal from './EditExpenseModal.vue'
 
+const props = defineProps({
+  showHeader: {
+    type: Boolean,
+    default: true
+  },
+  showNavigation: {
+    type: Boolean,
+    default: true
+  },
+  useFormEdit: {
+    type: Boolean,
+    default: false
+  }
+})
+
 const expenseStore = useExpenseStore()
-const route = useRoute()
 const selectedMonth = ref(new Date().toISOString().slice(0, 7))
 const searchQuery = ref('')
 const showDeleteModal = ref(false)
@@ -157,22 +171,16 @@ const calculateGroupTotal = (expenses) => {
 }
 
 // Method to handle edit button click
-// This will either use the modal or emit the event based on props
 const handleEdit = (expense) => {
-  console.log('Edit button clicked for expense:', expense)
-  
-  // Check if we're on the dashboard page - use direct form update
-  if (route.path === '/') {
-    emit('edit-expense', expense) 
-    console.log('Emitted edit-expense event')
+  if (props.useFormEdit) {
+    emit('edit-expense', expense)
   } else {
-    // Use modal approach on other pages
     openEditModal(expense)
   }
 }
 
 const openEditModal = (expense) => {
-  expenseToEdit.value = expense
+  expenseToEdit.value = { ...expense } // Create a copy of the expense object
   showEditModal.value = true
 }
 
@@ -183,6 +191,7 @@ const closeEditModal = () => {
 
 const handleExpenseUpdate = () => {
   expenseStore.loadExpenses()
+  closeEditModal()
 }
 
 const confirmDelete = (expense) => {
