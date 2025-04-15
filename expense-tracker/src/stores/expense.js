@@ -47,27 +47,34 @@ export const useExpenseStore = defineStore('expense', {
 
   actions: {
     loadExpenses() {
-      const savedExpenses = localStorage.getItem('expenses')
-      if (savedExpenses) {
-        this.expenses = JSON.parse(savedExpenses)
+      try {
+        const savedExpenses = localStorage.getItem('expenses')
+        if (savedExpenses) {
+          this.expenses = JSON.parse(savedExpenses)
+        }
+      } catch (e) {
+        console.error(e)
       }
     },
 
     addExpense(expense) {
-      const isDuplicate = this.expenses.some(
-        e => e.group === expense.group &&
-          e.name === expense.name &&
-          e.amount === expense.amount &&
-          e.date === expense.date
-      )
+      try {
+        const isDuplicate = this.expenses.some(
+          e => e.group === expense.group &&
+            e.name === expense.name &&
+            e.amount === expense.amount &&
+            e.date === expense.date
+        )
 
-      if (!isDuplicate) {
-        this.expenses.push(expense)
-        localStorage.setItem('expenses', JSON.stringify(this.expenses))
-        return { success: true }
+        if (!isDuplicate) {
+          this.expenses.push(expense)
+          localStorage.setItem('expenses', JSON.stringify(this.expenses))
+          return { success: true }
+        }
+        return { success: false, error: 'This expense is already added.' + error }
+      } catch (error) {
+        console.log('Error adding expense:', error);
       }
-
-      return { success: false, error: 'This expense is already added.' }
     },
 
     updateExpense(oldExpense, newExpense) {
@@ -125,29 +132,41 @@ export const useExpenseStore = defineStore('expense', {
 
     updateExpenseGroup(oldGroupName, newGroupName) {
       // Update group name for all expenses in the old group
-      this.expenses = this.expenses.map(expense => {
-        if (expense.group === oldGroupName) {
-          return { ...expense, group: newGroupName }
-        }
-        return expense
-      })
+      try {
+        this.expenses = this.expenses.map(expense => {
+          if (expense.group === oldGroupName) {
+            return { ...expense, group: newGroupName }
+          }
+          return expense
+        })
 
-      localStorage.setItem('expenses', JSON.stringify(this.expenses))
+        localStorage.setItem('expenses', JSON.stringify(this.expenses))
+      } catch (error) {
+        console.error(error)
+      }
     },
 
     deleteExpense(expense) {
-      this.expenses = this.expenses.filter(
-        e => !(e.group === expense.group &&
-          e.name === expense.name &&
-          e.amount === expense.amount &&
-          e.date === expense.date)
-      )
-      localStorage.setItem('expenses', JSON.stringify(this.expenses))
+      try {
+        this.expenses = this.expenses.filter(
+          e => !(e.group === expense.group &&
+            e.name === expense.name &&
+            e.amount === expense.amount &&
+            e.date === expense.date)
+        )
+        localStorage.setItem('expenses', JSON.stringify(this.expenses))
+      } catch (error) {
+        console.log(error);
+      }
     },
 
     deleteGroupExpenses(groupName) {
-      this.expenses = this.expenses.filter(expense => expense.group !== groupName)
-      localStorage.setItem('expenses', JSON.stringify(this.expenses))
+      try {
+        this.expenses = this.expenses.filter(expense => expense.group !== groupName)
+        localStorage.setItem('expenses', JSON.stringify(this.expenses))
+      } catch (error) {
+        console.log(error);
+      }
     },
 
     setSelectedMonth(month) {
