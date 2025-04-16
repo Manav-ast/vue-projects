@@ -24,22 +24,20 @@
 
     <div class="flex flex-col mb-6 sm:flex-row sm:space-x-4">
       <div class="mb-4 sm:mb-0">
-        <label for="month-selector" class="block text-sm font-medium mb-2">Select Month:</label>
-        <input
-          type="month"
+        <InputField
           id="month-selector"
+          type="month"
+          label="Select Month:"
           v-model="selectedMonth"
-          class="w-full p-2 border border-gray-300 rounded"
         />
       </div>
 
       <div class="flex-1">
-        <label for="search" class="block text-sm font-medium mb-2">Search by Group or Expense Name:</label>
-        <input
-          type="text"
+        <InputField
           id="search"
+          type="text"
+          label="Search by Group or Expense Name:"
           v-model="searchQuery"
-          class="w-full p-2 border border-gray-300 rounded"
           placeholder="Search..."
         />
       </div>
@@ -60,48 +58,37 @@
           {{ group }} (Total: ₹ {{ calculateGroupTotal(expenses) }})
         </h4>
 
-        <table
-          class="min-w-full bg-gray-100 border border-gray-300 rounded-lg mt-2 overflow-hidden"
+        <Table
+          :headers="tableHeaders"
+          :data="expenses"
+          row-key="name"
+          class="mt-2"
+          empty-message="No expenses found for the selected filters."
         >
-          <thead>
-            <tr class="bg-blue-600 text-white rounded-t-lg">
-              <th class="py-2 px-4 text-left">Expense Name</th>
-              <th class="py-2 px-4 text-left">Amount</th>
-              <th class="py-2 px-4 text-left">Date</th>
-              <th class="py-2 px-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="rounded-b-lg">
-            <tr
-              v-for="expense in expenses"
-              :key="`${expense.name}-${expense.amount}-${expense.date}`"
-            >
-              <td class="py-2 px-4">{{ expense.name }}</td>
-              <td class="py-2 px-4">₹ {{ expense.amount }}</td>
-              <td class="py-2 px-4">{{ expense.date }}</td>
-              <td class="py-2 px-4 text-center">
-                <div class="flex justify-center space-x-2">
-                  <Button
-                    variant="secondary"
-                    @click="handleEdit(expense)"
-                    class="!p-1 text-blue-600"
-                    title="Edit Expense"
-                  >
-                    <i class="fa-solid fa-pen"></i>
-                  </Button>
-                  <Button
-                  variant="danger"
-                    @click="confirmDelete(expense)"
-                    class="!p-1"
-                    title="Delete Expense"
-                  >
-                    <font-awesome-icon icon="trash" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <template #amount="{ row }">
+            ₹ {{ row.amount }}
+          </template>
+          <template #actions="{ row }">
+            <div class="flex justify-center space-x-2">
+              <Button
+                variant="secondary"
+                @click="handleEdit(row)"
+                class="!p-1 text-blue-600"
+                title="Edit Expense"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </Button>
+              <Button
+                variant="danger"
+                @click="confirmDelete(row)"
+                class="!p-1"
+                title="Delete Expense"
+              >
+                <font-awesome-icon icon="trash" />
+              </Button>
+            </div>
+          </template>
+        </Table>
       </div>
 
       <div
@@ -139,6 +126,8 @@ import { useExpenseStore } from '../../stores/expense.js'
 import Button from '../Shared/ButtonComponent.vue'
 import Modal from '../Shared/ModalComponent.vue'
 import EditExpenseModal from './EditExpenseModal.vue'
+import InputField from '../Shared/InputField.vue'
+import Table from '../Shared/TableComponent.vue'
 
 const props = defineProps({
   showHeader: {
@@ -167,6 +156,13 @@ const expenseToEdit = ref(null)
 const emit = defineEmits(['edit-expense'])
 
 const groupedExpenses = computed(() => expenseStore.groupedExpenses)
+
+const tableHeaders = [
+  { key: 'name', label: 'Expense Name' },
+  { key: 'amount', label: 'Amount' },
+  { key: 'date', label: 'Date' },
+  { key: 'actions', label: 'Actions', align: 'text-center' }
+]
 
 const calculateGroupTotal = (expenses) => {
   return expenses.reduce((total, expense) => total + expense.amount, 0)

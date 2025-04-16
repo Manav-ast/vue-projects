@@ -13,20 +13,11 @@
     <div class="flex-1 sm:w-full md:w-3/4 p-4">
       <h2 class="text-xl font-semibold text-center mb-6">Dashboard</h2>
 
-      <div class="flex flex-col sm:flex-row sm:space-x-4 mb-6">
-        <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center mb-4 sm:mb-0">
-          <p class="text-sm">Lifetime Expenses:</p>
-          <span class="font-semibold text-lg">₹ {{ expenseStore.lifetimeTotal }}</span>
-        </div>
-        <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center mb-4 sm:mb-0">
-          <p class="text-sm">Total this Month:</p>
-          <span class="font-semibold text-lg">₹ {{ expenseStore.monthlyTotal }}</span>
-        </div>
-        <div class="flex-1 p-4 bg-gray-100 rounded-lg text-center">
-          <p class="text-sm">Highest this Month:</p>
-          <span class="font-semibold text-lg">₹ {{ expenseStore.highestMonthlyExpense }}</span>
-        </div>
-      </div>
+      <Stats :stats="[
+        { label: 'Lifetime Expenses', value: expenseStore.lifetimeTotal, prefix: '₹ ' },
+        { label: 'Total this Month', value: expenseStore.monthlyTotal, prefix: '₹ ' },
+        { label: 'Highest this Month', value: expenseStore.highestMonthlyExpense, prefix: '₹ ' }
+      ]" />
 
       <ExpenseList />
     </div>
@@ -39,6 +30,7 @@ import { useExpenseStore } from '../stores/expense'
 import GroupForm from '../components/Expense/GroupForm.vue'
 import ExpenseForm from '../components/Expense/ExpenseForm.vue'
 import ExpenseList from '../components/Expense/ExpenseList.vue'
+import Stats from '../components/Shared/Stats.vue'
 
 const expenseStore = useExpenseStore()
 

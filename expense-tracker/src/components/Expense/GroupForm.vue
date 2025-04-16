@@ -3,16 +3,13 @@
   <form @submit.prevent="handleSubmit" class="mb-6">
     <h2 class="text-xl text-center mb-4">Group Management</h2>
 
-    <div class="mb-4">
-      <label for="group-name" class="block text-sm font-medium mb-2">Group Name</label>
-      <input
-        type="text"
-        id="group-name"
-        v-model="groupName"
-        class="w-full p-2 border border-gray-300 rounded"
-        placeholder="Group Name">
-      <p v-if="error" class="text-red-500 text-sm mt-1">{{ error }}</p>
-    </div>
+    <InputField
+      id="group-name"
+      label="Group Name"
+      v-model="groupName"
+      placeholder="Group Name"
+      :error="error"
+    />
 
     <div class="flex space-x-2">
       <Button
@@ -31,30 +28,11 @@
     </div>
   </form>
 
-  <div class="overflow-y-auto h-48 mt-6 border border-gray-200 rounded">
-    <ul class="space-y-2 p-2">
-      <li
-        v-for="group in groupStore.groups"
-        :key="group"
-        class="flex justify-between items-center p-2 bg-gray-100 rounded">
-        {{ group }}
-        <div class="flex space-x-2">
-          <button
-            class="text-blue-600"
-            @click="startEdit(group)"
-            title="Edit Group">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button
-            class="text-red-600"
-            @click="confirmDelete(group)"
-            title="Delete Group">
-            <font-awesome-icon icon="trash" />
-          </button>
-        </div>
-      </li>
-    </ul>
-  </div>
+  <GroupList
+    :groups="groupStore.groups"
+    @edit="startEdit"
+    @delete="confirmDelete"
+  />
 
   <Modal
     :is-open="showDeleteModal"
@@ -71,6 +49,8 @@ import { ref, onMounted } from 'vue'
 import { useGroupStore } from '../../stores/group.js'
 import Button from '../Shared/ButtonComponent.vue'
 import Modal from '../Shared/ModalComponent.vue'
+import InputField from '../Shared/InputField.vue'
+import GroupList from '../Shared/GroupList.vue'
 
 const groupStore = useGroupStore()
 const groupName = ref('')
