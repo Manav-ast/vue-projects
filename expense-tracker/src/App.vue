@@ -1,107 +1,90 @@
 <template>
-  <AppLayout>
-    <router-view />
-  </AppLayout>
+  <div class="min-h-screen bg-gray-100">
+    <nav class="bg-white shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex">
+            <div class="flex-shrink-0 flex items-center">
+              <router-link to="/" class="text-xl font-bold text-indigo-600">
+                Expense Tracker
+              </router-link>
+            </div>
+            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <router-link
+                to="/"
+                :class="[
+                  $route.path === '/'
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                  'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium',
+                ]"
+              >
+                Dashboard
+              </router-link>
+              <router-link
+                to="/expenses"
+                :class="[
+                  $route.path === '/expenses'
+                    ? 'border-indigo-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                  'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium',
+                ]"
+              >
+                Expenses
+              </router-link>
+            </div>
+          </div>
+          <div class="hidden sm:ml-6 sm:flex sm:items-center">
+            <template v-if="authStore.isAuthenticated">
+              <span class="text-gray-500 mr-4">{{ authStore.currentUser?.name }}</span>
+              <button
+                @click="handleLogout"
+                class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Logout
+              </button>
+            </template>
+            <template v-else>
+              <router-link
+                to="/login"
+                :class="[
+                  $route.path === '/login'
+                    ? 'text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700',
+                  'px-3 py-2 rounded-md text-sm font-medium',
+                ]"
+              >
+                Login
+              </router-link>
+              <router-link
+                to="/register"
+                class="ml-4 bg-indigo-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700"
+              >
+                Register
+              </router-link>
+            </template>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <router-view />
+    </main>
+  </div>
 </template>
 
 <script setup>
-import AppLayout from './components/AppLayout.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+
+const authStore = useAuthStore()
+const router = useRouter()
+
+const handleLogout = async () => {
+  await authStore.logout()
+  router.push('/login')
+}
 </script>
 
-<style>
-:root {
-  /* Modern, minimal color palette */
-  --primary-color: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --background-color: #f8fafc;
-  --surface-color: #ffffff;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --error-color: #ef4444;
-  --success-color: #22c55e;
-  --border-color: #e2e8f0;
-  --hover-color: #f1f5f9;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-primary);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-.card {
-  background-color: var(--surface-color);
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  transition: all 0.2s ease;
-}
-
-.card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  border: none;
-  gap: 0.5rem;
-}
-
-.btn-primary {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-dark);
-}
-
-.btn-secondary {
-  background-color: var(--hover-color);
-  color: var(--text-primary);
-}
-
-.btn-secondary:hover {
-  background-color: var(--border-color);
-}
-
-input, select, textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  background-color: var(--surface-color);
-  color: var(--text-primary);
-  transition: all 0.2s ease;
-}
-
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-</style>
+<style></style>

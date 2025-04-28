@@ -10,8 +10,12 @@
       :disabled="disabled"
     >
       <option v-if="placeholder" value="" disabled selected>{{ placeholder }}</option>
-      <option v-for="option in options" :key="option" :value="option">
-        {{ option }}
+      <option
+        v-for="option in options"
+        :key="getOptionValue(option)"
+        :value="getOptionValue(option)"
+      >
+        {{ getOptionLabel(option) }}
       </option>
     </select>
     <p v-if="error" class="error-message">{{ error }}</p>
@@ -19,36 +23,58 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   id: {
     type: String,
-    required: true
+    required: true,
   },
   label: {
     type: String,
-    required: true
+    required: true,
   },
   modelValue: {
     type: [String, Number],
-    default: ''
+    default: '',
   },
   options: {
     type: Array,
-    required: true
+    required: true,
+  },
+  optionValue: {
+    type: String,
+    default: null,
+  },
+  optionLabel: {
+    type: String,
+    default: null,
   },
   placeholder: {
     type: String,
-    default: ''
+    default: '',
   },
   error: {
     type: String,
-    default: ''
+    default: '',
   },
   disabled: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
+
+const getOptionValue = (option) => {
+  if (props.optionValue) {
+    return option[props.optionValue]
+  }
+  return option
+}
+
+const getOptionLabel = (option) => {
+  if (props.optionLabel) {
+    return option[props.optionLabel]
+  }
+  return option
+}
 
 defineEmits(['update:modelValue', 'focus'])
 </script>

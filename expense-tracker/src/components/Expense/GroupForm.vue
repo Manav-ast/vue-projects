@@ -12,24 +12,16 @@
     />
 
     <div class="flex space-x-2">
-      <Button
-        variant="primary"
-        type="submit"
-        class="flex-1">
+      <Button variant="primary" type="submit" class="flex-1">
         {{ editMode ? 'Update Group' : 'Add Group' }}
       </Button>
 
-      <Button
-        v-if="editMode"
-        @click="cancelEdit"
-        class="flex-1">
-        Cancel
-      </Button>
+      <Button v-if="editMode" @click="cancelEdit" class="flex-1"> Cancel </Button>
     </div>
   </form>
 
   <GroupList
-    :groups="groupStore.groups"
+    :groups="groupStore.groups.map((g) => g.name)"
     @edit="startEdit"
     @delete="confirmDelete"
   />
@@ -39,8 +31,10 @@
     title="Confirm Deletion"
     confirm-text="Delete"
     @cancel="cancelDelete"
-    @confirm="deleteGroup">
-    Are you sure you want to delete the group "{{ groupToDelete }}"? All related expenses will also be deleted.
+    @confirm="deleteGroup"
+  >
+    Are you sure you want to delete the group "{{ groupToDelete }}"? All related expenses will also
+    be deleted.
   </Modal>
 </template>
 
@@ -60,7 +54,7 @@ const groupToDelete = ref('')
 const editMode = ref(false)
 const originalGroupName = ref('')
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (groupName.value.trim().length < 3) {
     error.value = 'Group name must be at least 3 characters long'
     return
@@ -69,9 +63,9 @@ const handleSubmit = () => {
   let result
 
   if (editMode.value) {
-    result = groupStore.updateGroup(originalGroupName.value, groupName.value.trim())
+    result = await groupStore.updateGroup(originalGroupName.value, groupName.value.trim())
   } else {
-    result = groupStore.addGroup(groupName.value.trim())
+    result = await groupStore.addGroup(groupName.value.trim())
   }
 
   if (result.success) {
@@ -107,8 +101,11 @@ const cancelDelete = () => {
   groupToDelete.value = ''
 }
 
-const deleteGroup = () => {
-  groupStore.deleteGroup(groupToDelete.value)
+const deleteGroup = async () => {
+  const result = await groupStore.deleteGroup(groupToDelete.value)
+  if (!result.success) {
+    error.value = result.error
+  }
   showDeleteModal.value = false
   groupToDelete.value = ''
 }

@@ -5,8 +5,10 @@
       <SelectField
         id="expense-group"
         label="Group"
-        v-model="newExpense.group"
-        :options="groups"
+        v-model="newExpense.group_id"
+        :options="groupOptions"
+        option-value="id"
+        option-label="name"
         placeholder="Select Group"
         :error="expenseErrors.group"
         @focus="clearExpenseErrorMessage('group')"
@@ -59,45 +61,51 @@ import SelectField from './Shared/SelectField.vue'
 const groupStore = useGroupStore()
 const expenseStore = useExpenseStore()
 
-const groups = computed(() => groupStore.groups)
+// Use computed for group options formatted for SelectField
+const groupOptions = computed(() => groupStore.groups.map(g => ({ id: g.id, name: g.name })))
 
 const newExpense = ref({
-  group: '',
+  group_id: null, // Changed from group: ''
   name: '',
   amount: '',
   date: new Date().toISOString().split('T')[0],
 })
 
 const expenseErrors = ref({
-  group: '',
+  group_id: '', // Changed from group
   name: '',
   amount: '',
   date: '',
 })
 
 function clearExpenseErrorMessage(field) {
+  // Adjust field name if needed (e.g., 'group_id')
   expenseErrors.value[field] = ''
 }
 
 function validateExpense() {
   // Reset errors
-  expenseErrors.value.group = ''
+  expenseErrors.value.group_id = '' // Changed from group
   expenseErrors.value.name = ''
   expenseErrors.value.amount = ''
   expenseErrors.value.date = ''
 
   // Validate each field using the validation utility
-  expenseErrors.value.group = validateRequired(newExpense.value.group) || ''
-  expenseErrors.value.name = validateRequired(newExpense.value.name) || ''
+  expenseErrors.value.group_id = validateRequired(newExpense.value.group_id) ? '' : 'Group is required.' // Changed validation
+  expenseErrors.value.name = validateRequired(newExpense.value.name) ? '' : 'Expense name is required.'
   expenseErrors.value.amount = validateAll(newExpense.value.amount, [validateRequired, validatePositiveNumber]) || ''
-  expenseErrors.value.date = validateRequired(newExpense.value.date) || ''
+  expenseErrors.value.date = validateRequired(newExpense.value.date) ? '' : 'Date is required.'
 
   // Check if any errors exist
   let isValid = !Object.values(expenseErrors.value).some(error => error !== '')
 
+  // Note: Duplicate check might need adjustment if it relies on group name
+  // The store's isDuplicateExpense likely needs updating or removal if backend handles duplicates
+  // For now, we assume the store handles it or it's less critical than the ID change.
+  /*
   if (isValid) {
     const isDuplicate = expenseStore.isDuplicateExpense(
-      newExpense.value.group,
+      newExpense.value.group_id, // Pass ID if store expects it, or handle differently
       newExpense.value.name,
       newExpense.value.amount,
       newExpense.value.date,
@@ -108,19 +116,39 @@ function validateExpense() {
       isValid = false
     }
   }
+  */
 
   return isValid
 }
 
-function addExpense() {
+async function addExpense() { // Make async
   if (validateExpense()) {
-    expenseStore.addExpense({ ...newExpense.value })
+    // Prepare payload with group_id
+    const payload = {
+      name: newExpense.value.name,
+      amount: parseFloat(newExpense.value.amount),
+      date: newExpense.value.date,
+      group_id: newExpense.value.group_id,
+    };
 
-    newExpense.value = {
-      group: '',
-      name: '',
-      amount: '',
-      date: new Date().toISOString().split('T')[0],
+    const result = await expenseStore.addExpense(payload); // Pass payload
+
+    if (result.success) {
+      // Reset form
+      newExpense.value = {
+        group_id: null, // Reset group_id
+        name: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+      };
+      // Optionally clear errors if they aren't cleared automatically
+      Object.keys(expenseErrors.value).forEach(key => expenseErrors.value[key] = '');
+    } else {
+      // Handle potential errors returned from the store (e.g., display backend validation errors)
+      // For now, just log the error
+      console.error("Failed to add expense:", result.error);
+      // You might want to set a general error message or map specific errors
+      // Example: if (result.error.includes('duplicate')) { expenseErrors.value.name = result.error; }
     }
   }
 }

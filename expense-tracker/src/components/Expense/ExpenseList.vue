@@ -1,101 +1,93 @@
 <!-- components/Expense/ExpenseList.vue -->
 <template>
-  <div>
-    <div v-if="showHeader" class="flex justify-between items-center mb-6">
-      <h3 class="text-lg font-semibold">Expenses by Group</h3>
-      <div v-if="showNavigation" class="flex gap-2">
-        <!-- Conditional routing -->
-        <Button
-          v-if="$route.path !== '/'"
-          variant="secondary"
-          @click="$router.push('/')"
-        >
-          Go to Dashboard
-        </Button>
-        <Button
-          v-if="$route.path !== '/expenses'"
-          variant="secondary"
-          @click="$router.push('/expenses')"
-        >
-          All Expenses
-        </Button>
-      </div>
-    </div>
-
-    <div class="flex flex-col mb-6 sm:flex-row sm:space-x-4">
-      <div class="mb-4 sm:mb-0">
-        <InputField
-          id="month-selector"
+  <div class="mt-8 mb-4">
+    <h2 class="text-xl font-semibold mb-4">Your Expenses</h2>
+    <div class="mb-4 flex justify-between items-center">
+      <div class="flex gap-2">
+        <input
           type="month"
-          label="Select Month:"
           v-model="selectedMonth"
+          class="border border-gray-300 rounded px-2 py-1"
+          @change="handleMonthChange"
         />
-      </div>
-
-      <div class="flex-1">
-        <InputField
-          id="search"
+        <input
           type="text"
-          label="Search by Group or Expense Name:"
           v-model="searchQuery"
-          placeholder="Search..."
+          placeholder="Search expenses..."
+          class="border border-gray-300 rounded px-2 py-1"
+          @input="handleSearch"
         />
       </div>
-    </div>
-
-    <div class="flex flex-wrap justify-center gap-4 mb-6">
-      <Button variant="secondary" @click="sortExpenses('name')" class="w-full sm:w-auto">
-        Sort by Name
-      </Button>
-      <Button variant="secondary" @click="sortExpenses('amount')" class="w-full sm:w-auto">
-        Sort by Amount
-      </Button>
-    </div>
-
-    <div class="overflow-x-auto mt-4 max-h-[70vh]">
-      <div v-for="(expenses, group) in groupedExpenses" :key="group" class="mb-6">
-        <h4 class="font-semibold text-xl">
-          {{ group }} (Total: ₹ {{ calculateGroupTotal(expenses) }})
-        </h4>
-
-        <Table
-          :headers="tableHeaders"
-          :data="expenses"
-          row-key="name"
-          class="mt-2"
-          empty-message="No expenses found for the selected filters."
-        >
-          <template #amount="{ row }">
-            ₹ {{ row.amount }}
-          </template>
-          <template #actions="{ row }">
-            <div class="flex justify-center space-x-2">
-              <Button
-                variant="secondary"
-                @click="handleEdit(row)"
-                class="!p-1 text-blue-600"
-                title="Edit Expense"
-              >
-                <i class="fa-solid fa-pen"></i>
-              </Button>
-              <Button
-                variant="danger"
-                @click="confirmDelete(row)"
-                class="!p-1"
-                title="Delete Expense"
-              >
-                <font-awesome-icon icon="trash" />
-              </Button>
-            </div>
-          </template>
-        </Table>
+      <div class="flex gap-2">
+        <button class="bg-blue-500 text-white px-3 py-1 rounded" @click="sortBy('name')">
+          Sort by Name
+        </button>
+        <button class="bg-blue-500 text-white px-3 py-1 rounded" @click="sortBy('amount')">
+          Sort by Amount
+        </button>
       </div>
+    </div>
 
-      <div
-        v-if="Object.keys(groupedExpenses).length === 0"
-        class="text-center py-8 bg-gray-100 rounded"
-      >
-        <p class="text-gray-500">No expenses found for the selected filters.</p>
+    <div v-if="!expenseStore.filteredExpenses.length" class="text-center py-8 text-gray-500">
+      No expenses found. Add some expenses to get started!
+    </div>
+
+    <div v-for="(expenses, groupName) in groupedExpenses" :key="groupName" class="mb-6">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold">{{ groupName }}</h3>
+        <span class="text-sm font-medium">
+          Total: {{ formatCurrency(groupTotals[groupName] || 0) }}
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Name
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Amount
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Date
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="expense in expenses" :key="expense.id">
+              <td class="px-6 py-4 whitespace-nowrap">{{ expense.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">${{ expense.amount.toFixed(2) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(expense.date) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button
+                  @click="editExpense(expense)"
+                  class="text-indigo-600 hover:text-indigo-900 mr-2"
+                >
+                  Edit
+                </button>
+                <button @click="confirmDelete(expense)" class="text-red-600 hover:text-red-900">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -106,90 +98,72 @@
       @cancel="cancelDelete"
       @confirm="deleteExpense"
     >
-      Are you sure you want to delete the expense "{{ expenseToDelete?.name }}" of ₹
-      {{ expenseToDelete?.amount }}?
+      Are you sure you want to delete this expense?
     </Modal>
-
-    <EditExpenseModal
-      v-if="!useFormEdit"
-      :is-open="showEditModal"
-      :expense="expenseToEdit"
-      @close="closeEditModal"
-      @update="handleExpenseUpdate"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, defineEmits, defineProps } from 'vue'
+import { ref, computed } from 'vue'
 import { useExpenseStore } from '../../stores/expense.js'
-import Button from '../Shared/ButtonComponent.vue'
 import Modal from '../Shared/ModalComponent.vue'
-import EditExpenseModal from './EditExpenseModal.vue'
-import InputField from '../Shared/InputField.vue'
-import Table from '../Shared/TableComponent.vue'
-
-const props = defineProps({
-  showHeader: {
-    type: Boolean,
-    default: true
-  },
-  showNavigation: {
-    type: Boolean,
-    default: true
-  },
-  useFormEdit: {
-    type: Boolean,
-    default: false
-  }
-})
 
 const expenseStore = useExpenseStore()
 const selectedMonth = ref(new Date().toISOString().slice(0, 7))
 const searchQuery = ref('')
 const showDeleteModal = ref(false)
 const expenseToDelete = ref(null)
-const showEditModal = ref(false)
-const expenseToEdit = ref(null)
 
-// Define emits
-const emit = defineEmits(['edit-expense'])
+const emit = defineEmits(['edit', 'delete-success'])
 
 const groupedExpenses = computed(() => expenseStore.groupedExpenses)
+const groupTotals = computed(() => expenseStore.groupTotals)
 
-const tableHeaders = [
-  { key: 'name', label: 'Expense Name' },
-  { key: 'amount', label: 'Amount' },
-  { key: 'date', label: 'Date' },
-  { key: 'actions', label: 'Actions', align: 'text-center' }
-]
-
-const calculateGroupTotal = (expenses) => {
-  return expenses.reduce((total, expense) => total + expense.amount, 0)
+// Format date from YYYY-MM-DD to readable format
+const formatDate = (dateString) => {
+  const date = new Date(dateString + 'T00:00:00')
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
-// Method to handle edit button click
-const handleEdit = (expense) => {
-  if (props.useFormEdit) {
-    emit('edit-expense', expense)
-  } else {
-    openEditModal(expense)
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+  }).format(amount)
+}
+
+const handleMonthChange = () => {
+  expenseStore.setSelectedMonth(selectedMonth.value)
+}
+
+const handleSearch = () => {
+  expenseStore.setSearchQuery(searchQuery.value)
+}
+
+const sortBy = (criteria) => {
+  expenseStore.sortExpenses(criteria)
+}
+
+const editExpense = (expense) => {
+  console.log('Emitting edit event for expense:', expense)
+  if (!expense || !expense.id) {
+    console.error('Invalid expense data for editing:', expense)
+    return
   }
-}
-
-const openEditModal = (expense) => {
-  expenseToEdit.value = { ...expense } // Create a copy of the expense object
-  showEditModal.value = true
-}
-
-const closeEditModal = () => {
-  showEditModal.value = false
-  expenseToEdit.value = null
-}
-
-const handleExpenseUpdate = () => {
-  expenseStore.loadExpenses()
-  closeEditModal()
+  // Create a plain object from the Proxy
+  const plainExpense = {
+    id: expense.id,
+    group_id: expense.group_id,
+    name: expense.name,
+    amount: expense.amount,
+    date: expense.date,
+    group: expense.group,
+  }
+  emit('edit', plainExpense)
 }
 
 const confirmDelete = (expense) => {
@@ -202,28 +176,14 @@ const cancelDelete = () => {
   expenseToDelete.value = null
 }
 
-const deleteExpense = () => {
-  if (expenseToDelete.value) {
-    expenseStore.deleteExpense(expenseToDelete.value)
-    showDeleteModal.value = false
-    expenseToDelete.value = null
+const deleteExpense = async () => {
+  const result = await expenseStore.deleteExpense(expenseToDelete.value)
+  if (result.success) {
+    emit('delete-success')
+  } else {
+    console.error(result.error)
   }
+  showDeleteModal.value = false
+  expenseToDelete.value = null
 }
-
-const sortExpenses = (criteria) => {
-  expenseStore.sortExpenses(criteria)
-}
-
-watch(selectedMonth, (newValue) => {
-  expenseStore.setSelectedMonth(newValue)
-})
-
-watch(searchQuery, (newValue) => {
-  expenseStore.setSearchQuery(newValue)
-})
-
-onMounted(() => {
-  expenseStore.loadExpenses()
-  expenseStore.setSelectedMonth(selectedMonth.value)
-})
 </script>

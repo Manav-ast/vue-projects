@@ -6,12 +6,12 @@
     <SelectField
       id="expense-group"
       label="Group"
-      v-model="form.group"
-      :options="groupStore.groups"
+      v-model="form.groupName"
+      :options="groupOptions"
       :error="errors.group"
     />
 
-        <InputField
+    <InputField
       id="expense-name"
       label="Expense Name"
       v-model="form.name"
@@ -52,7 +52,7 @@
 <script setup>
 import InputField from '../Shared/InputField.vue'
 import SelectField from '../Shared/SelectField.vue'
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed, watch } from 'vue'
 import { useGroupStore } from '../../stores/group.js'
 import { useExpenseStore } from '../../stores/expense.js'
 import { getTodayDate } from '../../utils/formatDate.js'
@@ -63,11 +63,26 @@ const groupStore = useGroupStore()
 const expenseStore = useExpenseStore()
 
 const form = reactive({
-  group: '',
+  groupId: '',
+  groupName: '',
   name: '',
   amount: null,
   date: getTodayDate(),
 })
+
+// Get group names for the select dropdown
+const groupOptions = computed(() => {
+  return groupStore.groups.map((group) => group.name)
+})
+
+// Watch for changes in groupName and update groupId accordingly
+watch(
+  () => form.groupName,
+  (newGroupName) => {
+    const selectedGroup = groupStore.groups.find((g) => g.name === newGroupName)
+    form.groupId = selectedGroup ? selectedGroup.id : ''
+  },
+)
 
 const originalExpense = ref(null)
 const editMode = ref(false)
@@ -87,19 +102,19 @@ const validateForm = () => {
   errors.date = ''
 
   // Validate each field using the validation utility
-  errors.group = validateRequired(form.group) || ''
+  errors.group = validateRequired(form.groupName) || ''
   errors.name = validateRequired(form.name) || ''
   errors.amount = validateAll(form.amount, [validateRequired, validatePositiveNumber]) || ''
   errors.date = validateRequired(form.date) || ''
 
   // Check if any errors exist
-  return !Object.values(errors).some(error => error !== '')
+  return !Object.values(errors).some((error) => error !== '')
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (validateForm()) {
     const newExpense = {
-      group: form.group,
+      group_id: form.groupId, // Send group_id to the API
       name: form.name,
       amount: parseFloat(form.amount),
       date: form.date,
@@ -108,9 +123,9 @@ const handleSubmit = () => {
     let result
 
     if (editMode.value && originalExpense.value) {
-      result = expenseStore.updateExpense(originalExpense.value, newExpense)
+      result = await expenseStore.updateExpense(originalExpense.value, newExpense)
     } else {
-      result = expenseStore.addExpense(newExpense)
+      result = await expenseStore.addExpense(newExpense)
     }
 
     if (result.success) {
@@ -125,7 +140,8 @@ const handleSubmit = () => {
 }
 
 const resetForm = () => {
-  form.group = ''
+  form.groupId = ''
+  form.groupName = ''
   form.name = ''
   form.amount = null
   form.date = getTodayDate()
@@ -148,8 +164,12 @@ const startEdit = (expense) => {
     return
   }
 
-  // Set form values directly from the expense object
-  form.group = expense.group
+  // Set form values from the expense object
+  form.groupName = expense.group
+  // Find the group id from the name
+  const selectedGroup = groupStore.groups.find((g) => g.name === expense.group)
+  form.groupId = selectedGroup ? selectedGroup.id : ''
+
   form.name = expense.name
   form.amount = expense.amount
   form.date = expense.date
