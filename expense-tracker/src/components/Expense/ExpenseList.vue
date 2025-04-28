@@ -79,10 +79,10 @@
                   @click="editExpense(expense)"
                   class="text-indigo-600 hover:text-indigo-900 mr-2"
                 >
-                  Edit
+                  <i class="fa-solid fa-pen"></i>
                 </button>
                 <button @click="confirmDelete(expense)" class="text-red-600 hover:text-red-900">
-                  Delete
+                  <i class="fas fa-trash"></i>
                 </button>
               </td>
             </tr>
