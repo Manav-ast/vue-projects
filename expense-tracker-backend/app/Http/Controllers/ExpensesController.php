@@ -8,6 +8,9 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log as FacadesLog;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\ExpensesExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ExpensesController extends Controller
 {
@@ -97,9 +100,76 @@ class ExpensesController extends Controller
             // Log the error for debugging purposes
             FacadesLog::error('Error deleting expense: ' . $e->getMessage());
 
-            // Return a JSON response with a 500 status code
             return response()->json([
                 'error' => 'An error occurred while deleting the expense.',
+            ], 500);
+        }
+    }
+
+    public function exportPdf()
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                throw new Exception('User not authenticated');
+            }
+
+            $expenses = Expenses::where('user_id', $user->id)
+                ->with('group')
+                ->get();
+
+            if ($expenses->isEmpty()) {
+                throw new Exception('No expenses found for the user');
+            }
+
+            FacadesLog::info('Generating PDF for user: ' . $user->id . ' with ' . $expenses->count() . ' expenses');
+
+            $pdf = Pdf::loadView('exports.expenses-pdf', [
+                'user' => $user,
+                'expenses' => $expenses
+            ]);
+
+            $fileName = 'expenses-' . now()->format('Y-m-d') . '.pdf';
+            $pdfPath = 'pdf/' . $fileName;
+
+            // Ensure the pdf directory exists
+            if (!file_exists(storage_path('app/public/pdf'))) {
+                mkdir(storage_path('app/public/pdf'), 0755, true);
+            }
+
+            // Store the PDF in the public/pdf storage
+            $pdf->save(storage_path('app/public/' . $pdfPath));
+
+            FacadesLog::info('PDF generated successfully: ' . $pdfPath);
+
+            //Return the file for download
+            return response()->download(storage_path('app/public/' . $pdfPath), $fileName, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"'
+            ]);
+        } catch (Exception $e) {
+            FacadesLog::error('Error exporting PDF: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return response()->json([
+                'error' => 'An error occurred while generating the PDF: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function exportCsv()
+    {
+        try {
+            $fileName = 'expenses-' . now()->format('Y-m-d') . '.csv';
+            $csvPath = 'csv/' . $fileName;
+            Excel::store(new ExpensesExport(), $csvPath, 'public');
+
+            return response()->json([
+                'success' => true,
+                'file_url' => asset('storage/' . $csvPath)
+            ]);
+        } catch (Exception $e) {
+            FacadesLog::error('Error exporting expenses: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'An error occurred while exporting expenses.',
             ], 500);
         }
     }

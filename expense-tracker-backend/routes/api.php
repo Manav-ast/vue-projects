@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\ExpensesController;
 use App\Http\Controllers\GroupsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ExpensesController;
 use App\Http\Controllers\AuthController;
 
 /*
@@ -37,4 +37,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/expenses/store', [ExpensesController::class, 'store'])->name('expenses.store');
     Route::delete('/expenses/delete/{id}', [ExpensesController::class, 'destroy'])->name('expenses.delete');
     Route::patch('/expenses/update/{id}', [ExpensesController::class, 'update'])->name('expenses.update');
+    Route::get('/expenses/export-csv', [ExpensesController::class, 'exportCsv']);
+    Route::get('/expenses/export-pdf', [ExpensesController::class, 'exportPdf']);
 });

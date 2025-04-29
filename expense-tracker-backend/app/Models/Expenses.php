@@ -11,4 +11,9 @@ class Expenses extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function group()
+    {
+        return $this->belongsTo(Groups::class);
+    }
 }
