@@ -46,6 +46,8 @@ import Modal from '../Shared/ModalComponent.vue'
 import InputField from '../Shared/InputField.vue'
 import GroupList from '../Shared/GroupList.vue'
 
+const emit = defineEmits(['show-toast'])
+
 const groupStore = useGroupStore()
 const groupName = ref('')
 const error = ref('')
@@ -73,8 +75,10 @@ const handleSubmit = async () => {
     error.value = ''
     editMode.value = false
     originalGroupName.value = ''
+    emit('show-toast', editMode.value ? 'Group updated successfully' : 'Group added successfully')
   } else {
     error.value = result.error
+    emit('show-toast', result.error, 'error')
   }
 }
 
@@ -103,8 +107,11 @@ const cancelDelete = () => {
 
 const deleteGroup = async () => {
   const result = await groupStore.deleteGroup(groupToDelete.value)
-  if (!result.success) {
+  if (result.success) {
+    emit('show-toast', 'Group deleted successfully')
+  } else {
     error.value = result.error
+    emit('show-toast', result.error, 'error')
   }
   showDeleteModal.value = false
   groupToDelete.value = ''

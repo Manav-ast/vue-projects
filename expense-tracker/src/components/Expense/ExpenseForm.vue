@@ -111,6 +111,8 @@ const validateForm = () => {
   return !Object.values(errors).some((error) => error !== '')
 }
 
+const emit = defineEmits(['show-toast'])
+
 const handleSubmit = async () => {
   if (validateForm()) {
     const newExpense = {
@@ -124,8 +126,14 @@ const handleSubmit = async () => {
 
     if (editMode.value && originalExpense.value) {
       result = await expenseStore.updateExpense(originalExpense.value, newExpense)
+      if (result.success) {
+        emit('show-toast', 'Expense updated successfully', 'success')
+      }
     } else {
       result = await expenseStore.addExpense(newExpense)
+      if (result.success) {
+        emit('show-toast', 'Expense added successfully', 'success')
+      }
     }
 
     if (result.success) {
@@ -133,8 +141,10 @@ const handleSubmit = async () => {
       // Force a reload of expenses to ensure UI is updated
       expenseStore.loadExpenses()
     } else {
-      // Show the error message in the form
-      errors.name = result.error || 'An error occurred while saving the expense'
+      // Show the error message in the form and toast
+      const errorMessage = result.error || 'An error occurred while saving the expense'
+      errors.name = errorMessage
+      emit('show-toast', errorMessage, 'error')
     }
   }
 }

@@ -6,8 +6,8 @@
       <div class="w-full md:w-1/4 p-4 border-r-2 border-gray-200">
         <h1 class="text-3xl font-semibold text-center mb-6">Expense Tracker</h1>
 
-        <GroupForm />
-        <ExpenseForm />
+        <GroupForm @show-toast="showToast" />
+        <ExpenseForm @show-toast="showToast" />
       </div>
 
       <!-- Right Section -->
@@ -53,17 +53,44 @@
       </div>
     </div>
   </div>
+
+  <ToastNotification
+    :show="toast.show"
+    :message="toast.message"
+    :type="toast.type"
+    @close="hideToast"
+  />
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, reactive } from 'vue'
 import { useExpenseStore } from '../stores/expense'
 import GroupForm from '../components/Group/GroupForm.vue'
 import ExpenseForm from '../components/Expense/ExpenseForm.vue'
 import ExpenseChart from '../components/Dashboard/ExpenseChart.vue'
+import ToastNotification from '../components/Shared/Toast.vue'
 import { exportToPDF, exportToCSV } from '../utils/exportUtils'
 
 const expenseStore = useExpenseStore()
+
+const toast = reactive({
+  show: false,
+  message: '',
+  type: 'success',
+})
+
+const showToast = (message, type = 'success') => {
+  toast.message = message
+  toast.type = type
+  toast.show = true
+  setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.show = false
+}
 
 const lifetimeTotal = computed(() => expenseStore.lifetimeTotal)
 const monthlyTotal = computed(() => expenseStore.monthlyTotal)
@@ -89,18 +116,20 @@ const handlePDFExport = async () => {
       groupTotals: groupTotals.value,
     })
     await exportToPDF(groupedExpenses.value, groupTotals.value)
+    showToast('PDF exported successfully')
   } catch (error) {
     console.error('PDF export failed:', error)
-    alert('Failed to export PDF. Please check the console for details.')
+    showToast('Failed to export PDF', 'error')
   }
 }
 
 const handleCSVExport = () => {
   try {
     exportToCSV(groupedExpenses.value, groupTotals.value)
+    showToast('CSV exported successfully')
   } catch (error) {
     console.error('CSV export failed:', error)
-    alert('Failed to export CSV. Please check the console for details.')
+    showToast('Failed to export CSV', 'error')
   }
 }
 </script>
