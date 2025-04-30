@@ -58,7 +58,7 @@
 <script setup>
 import { onMounted, computed } from 'vue'
 import { useExpenseStore } from '../stores/expense'
-import GroupForm from '../components/Expense/GroupForm.vue'
+import GroupForm from '../components/Group/GroupForm.vue'
 import ExpenseForm from '../components/Expense/ExpenseForm.vue'
 import ExpenseChart from '../components/Dashboard/ExpenseChart.vue'
 import { exportToPDF, exportToCSV } from '../utils/exportUtils'
