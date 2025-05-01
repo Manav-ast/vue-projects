@@ -1,11 +1,10 @@
 <?php
 
 use App\Http\Controllers\GroupsController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExpensesController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\NaturalLanguageExpenseController;
+use App\Http\Controllers\ChatGPTController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,21 +23,30 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::get('/auth/user', [AuthController::class, 'user']);
+    // Auth routes
+    Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/user', [AuthController::class, 'user']);
+    });
 
-    //groups
-    Route::get('/groups', [GroupsController::class, 'index'])->name('groups.index');
-    Route::post('/groups/store', [GroupsController::class, 'store'])->name('groups.store');
-    Route::delete('/groups/delete/{id}', [GroupsController::class, 'destroy'])->name('groups.delete');
-    Route::patch('/groups/update/{id}', [GroupsController::class, 'update'])->name('groups.update');
+    // Group routes
+    Route::prefix('groups')->group(function () {
+        Route::get('/', [GroupsController::class, 'index'])->name('groups.index');
+        Route::post('/store', [GroupsController::class, 'store'])->name('groups.store');
+        Route::delete('/delete/{id}', [GroupsController::class, 'destroy'])->name('groups.delete');
+        Route::patch('/update/{id}', [GroupsController::class, 'update'])->name('groups.update');
+    });
 
-    //expenses
-    Route::get('/expenses', [ExpensesController::class, 'index'])->name('expenses.index');
-    Route::post('/expenses/natural-language', [NaturalLanguageExpenseController::class, 'store'])->name('expenses.natural-language');
-    Route::post('/expenses/store', [ExpensesController::class, 'store'])->name('expenses.store');
-    Route::delete('/expenses/delete/{id}', [ExpensesController::class, 'destroy'])->name('expenses.delete');
-    Route::patch('/expenses/update/{id}', [ExpensesController::class, 'update'])->name('expenses.update');
-    Route::get('/expenses/export-csv', [ExpensesController::class, 'exportCsv']);
-    Route::get('/expenses/export-pdf', [ExpensesController::class, 'exportPdf']);
+    // Expense routes
+    Route::prefix('expenses')->group(function () {
+        Route::get('/', [ExpensesController::class, 'index'])->name('expenses.index');
+        Route::post('/store', [ExpensesController::class, 'store'])->name('expenses.store');
+        Route::delete('/delete/{id}', [ExpensesController::class, 'destroy'])->name('expenses.delete');
+        Route::patch('/update/{id}', [ExpensesController::class, 'update'])->name('expenses.update');
+        Route::get('/export-csv', [ExpensesController::class, 'exportCsv']);
+        Route::get('/export-pdf', [ExpensesController::class, 'exportPdf']);
+    });
+
+    // ChatGPT routes
+    Route::post('/chatgpt/command', [ChatGPTController::class, 'processCommand']);
 });

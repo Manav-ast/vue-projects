@@ -2,144 +2,121 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use Prism\Prism\Prism;
+use Prism\Prism\Enums\Provider;
+use App\Models\Groups;
+use App\Models\Expenses;
 use Illuminate\Support\Facades\Log;
 
 class ChatGPTService
 {
-    protected $apiKey;
-    protected $apiUrl = 'https://api.openai.com/v1/chat/completions';
+    private $prism;
 
     public function __construct()
     {
-        $this->apiKey = config('services.openai.api_key');
+        $this->prism = Prism::text()
+            ->using(Provider::OpenAI, 'gpt-4o')
+            ->withSystemPrompt('You are an expense tracking assistant. You help users manage their groups and expenses. You understand commands like "create group", "add expense", etc.');
     }
 
-    public function parseExpenseText($text)
+    public function processCommand(string $command)
     {
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-            ])->post($this->apiUrl, [
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are a financial assistant that extracts expense information from text. Your task is to carefully parse the input and extract expense details.
+            $response = $this->prism
+                ->withPrompt($command)
+                ->asText();
 
-                        Rules for extraction:
-                        1. For amount:
-                        - Extract ONLY the numerical value
-                        - Remove any currency symbols ($, €, etc)
-                        - Must be a positive number
-                        - Use decimal point for cents/pence
-                        - Examples: "20.50", "100.00", "5.99"
-
-                        2. For name:
-                        - Extract the main purpose or description
-                        - Keep it concise but descriptive
-                        - Remove any dates or amounts
-                        - Examples: "Grocery shopping", "Taxi ride", "Office supplies"
-
-                        3. For date:
-                        - Must be in YYYY-MM-DD format
-                        - If no date found, omit this field
-                        - Convert relative dates (today, yesterday) to actual dates
-                        - Examples: "2023-12-25", "2024-01-15"
-
-                        IMPORTANT:
-                        - Always return a valid JSON object
-                        - Include at least name and amount
-                        - If unsure about any field, omit it
-                        - Do not include any additional text or explanations
-                        - Ensure the JSON is properly formatted
-
-                        Examples:
-
-                        Input: "Spent $50.99 at Walmart for groceries yesterday"
-                        Output: {"name": "Grocery shopping at Walmart", "amount": 50.99, "date": "2024-01-14"}
-
-                        Input: "Coffee and snacks 12.50"
-                        Output: {"name": "Coffee and snacks", "amount": 12.50}
-
-                        If you cannot confidently extract both name and amount, return null.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $text
-                    ]
-                ],
-                'temperature' => 0.3,
-                'max_tokens' => 150
-            ]);
-
-            if ($response->successful()) {
-                $result = $response->json();
-                $parsedText = $result['choices'][0]['message']['content'];
-
-                // Try to clean up the response if it contains any non-JSON text
-                if (preg_match('/\{.*\}/s', $parsedText, $matches)) {
-                    $parsedText = $matches[0];
-                }
-
-                $parsedData = json_decode($parsedText, true);
-
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    Log::error('JSON parse error: ' . json_last_error_msg() . ' in response: ' . $parsedText);
-                    return null;
-                }
-
-                // Validate parsed data
-                if (!$this->isValidExpenseData($parsedData)) {
-                    Log::error('Invalid expense data format: ' . $parsedText);
-                    return null;
-                }
-
-                return $parsedData;
+            // Parse the response and perform actions
+            if (str_contains(strtolower($command), 'create group')) {
+                return $this->handleCreateGroup($command);
+            } elseif (str_contains(strtolower($command), 'add expense')) {
+                return $this->handleAddExpense($command);
             }
 
-            Log::error('ChatGPT API Error: ' . $response->body());
-            return null;
+            return ['message' => 'Command processed successfully', 'response' => $response];
         } catch (\Exception $e) {
-            Log::error('Error parsing expense text: ' . $e->getMessage());
-            return null;
+            Log::error('ChatGPT processing error: ' . $e->getMessage());
+            return ['error' => 'Failed to process command', 'message' => $e->getMessage()];
         }
     }
 
-    protected function isValidExpenseData($data)
+    private function handleCreateGroup(string $command)
     {
-        if (!is_array($data)) {
-            Log::error('Invalid data type: ' . gettype($data));
-            return false;
+        // Extract group name from command
+        $groupName = $this->extractGroupName($command);
+
+        if (!$groupName) {
+            return ['error' => 'Could not determine group name from command'];
         }
 
-        // Check for required fields
-        if (!isset($data['name']) || !isset($data['amount'])) {
-            Log::error('Missing required fields in expense data');
-            return false;
+        // Check if group exists
+        $group = Groups::where('name', $groupName)->first();
+
+        if (!$group) {
+            $group = Groups::create([
+                'name' => $groupName,
+                'description' => 'Created via ChatGPT command'
+            ]);
         }
 
-        // Validate name
-        if (!is_string($data['name']) || empty(trim($data['name']))) {
-            Log::error('Invalid name format');
-            return false;
+        return [
+            'message' => 'Group processed successfully',
+            'group' => $group
+        ];
+    }
+
+    private function handleAddExpense(string $command)
+    {
+        // Extract expense details from command
+        $expenseDetails = $this->extractExpenseDetails($command);
+
+        if (!$expenseDetails) {
+            return ['error' => 'Could not determine expense details from command'];
         }
 
-        // Validate amount
-        if (!is_numeric($data['amount']) || $data['amount'] <= 0) {
-            Log::error('Invalid amount format: ' . $data['amount']);
-            return false;
+        // Find or create group
+        $group = Groups::where('name', $expenseDetails['group'])->first();
+
+        if (!$group) {
+            $group = Groups::create([
+                'name' => $expenseDetails['group'],
+                'description' => 'Created via ChatGPT command'
+            ]);
         }
 
-        // Validate date if present
-        if (isset($data['date'])) {
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['date'])) {
-                Log::error('Invalid date format: ' . $data['date']);
-                return false;
-            }
-        }
+        // Create expense
+        $expense = Expenses::create([
+            'group_id' => $group->id,
+            'amount' => $expenseDetails['amount'],
+            'description' => $expenseDetails['description'],
+            'date' => now()
+        ]);
 
-        return true;
+        return [
+            'message' => 'Expense added successfully',
+            'expense' => $expense
+        ];
+    }
+
+    private function extractGroupName(string $command)
+    {
+        // Simple extraction logic - can be enhanced
+        if (preg_match('/create group\s+(.+)/i', $command, $matches)) {
+            return trim($matches[1]);
+        }
+        return null;
+    }
+
+    private function extractExpenseDetails(string $command)
+    {
+        // Simple extraction logic - can be enhanced
+        if (preg_match('/add expense of (.+?) of (\d+)\s+to\s+(.+)/i', $command, $matches)) {
+            return [
+                'description' => trim($matches[1]),
+                'amount' => (float)$matches[2],
+                'group' => trim($matches[3])
+            ];
+        }
+        return null;
     }
 }
