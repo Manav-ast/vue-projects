@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExpensesController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\NaturalLanguageExpenseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //expenses
     Route::get('/expenses', [ExpensesController::class, 'index'])->name('expenses.index');
+    Route::post('/expenses/natural-language', [NaturalLanguageExpenseController::class, 'store'])->name('expenses.natural-language');
     Route::post('/expenses/store', [ExpensesController::class, 'store'])->name('expenses.store');
     Route::delete('/expenses/delete/{id}', [ExpensesController::class, 'destroy'])->name('expenses.delete');
     Route::patch('/expenses/update/{id}', [ExpensesController::class, 'update'])->name('expenses.update');

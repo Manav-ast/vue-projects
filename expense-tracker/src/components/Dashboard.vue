@@ -83,5 +83,16 @@ onMounted(() => {
   .main-content {
     padding: 1rem;
   }
+
+  .dashboard-title {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .expense-list {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin: 0 -0.5rem;
+  }
 }
 </style>

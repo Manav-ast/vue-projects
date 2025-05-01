@@ -2,29 +2,39 @@
 <template>
   <div class="mt-8 mb-4">
     <h2 class="text-xl font-semibold mb-4">Your Expenses</h2>
-    <div class="mb-4 flex justify-between items-center">
-      <div class="flex gap-2">
-        <input
+    <div class="mb-4 sm:flex sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+      <div class="flex flex-col sm:flex-row gap-2">
+        <InputField
+          id="month-filter"
           type="month"
+          label=""
           v-model="selectedMonth"
-          class="border border-gray-300 rounded px-2 py-1"
-          @change="handleMonthChange"
+          @update:modelValue="handleMonthChange"
         />
-        <input
+        <InputField
+          id="search-filter"
           type="text"
+          label=""
           v-model="searchQuery"
           placeholder="Search expenses..."
-          class="border border-gray-300 rounded px-2 py-1"
-          @input="handleSearch"
+          @update:modelValue="handleSearch"
         />
       </div>
       <div class="flex gap-2">
-        <button class="bg-blue-500 text-white px-3 py-1 rounded" @click="sortBy('name')">
+        <Button
+          variant="primary"
+          @click="sortBy('name')"
+          class="flex-1 sm:flex-none"
+        >
           Sort by Name
-        </button>
-        <button class="bg-blue-500 text-white px-3 py-1 rounded" @click="sortBy('amount')">
+        </Button>
+        <Button
+          variant="primary"
+          @click="sortBy('amount')"
+          class="flex-1 sm:flex-none"
+        >
           Sort by Amount
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -39,55 +49,54 @@
           Total: {{ formatCurrency(groupTotals[groupName] || 0) }}
         </span>
       </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th
-                scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Name
-              </th>
-              <th
-                scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Amount
-              </th>
-              <th
-                scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Date
-              </th>
-              <th
-                scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="expense in expenses" :key="expense.id">
-              <td class="px-6 py-4 whitespace-nowrap">{{ expense.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">${{ expense.amount.toFixed(2) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(expense.date) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button
-                  @click="editExpense(expense)"
-                  class="text-indigo-600 hover:text-indigo-900 mr-2"
-                >
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button @click="confirmDelete(expense)" class="text-red-600 hover:text-red-900">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Desktop View -->
+      <div class="hidden sm:block">
+        <TableComponent
+          :headers="[
+            { key: 'name', label: 'Name' },
+            { key: 'amount', label: 'Amount' },
+            { key: 'date', label: 'Date' },
+            { key: 'actions', label: 'Actions' }
+          ]"
+          :data="expenses"
+          row-key="id"
+          empty-message="No expenses found. Add some expenses to get started!"
+        >
+          <template #amount="{ row }">
+            {{ formatCurrency(row.amount) }}
+          </template>
+          <template #date="{ row }">
+            {{ formatDate(row.date) }}
+          </template>
+          <template #actions="{ row }">
+            <div class="flex gap-2">
+              <button @click="editExpense(row)" class="text-indigo-600 hover:text-indigo-900">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button @click="confirmDelete(row)" class="text-red-600 hover:text-red-900">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </template>
+        </TableComponent>
+      </div>
+      <!-- Mobile View -->
+      <div class="sm:hidden space-y-4">
+        <div v-for="expense in expenses" :key="expense.id" class="bg-white rounded-lg shadow p-4 space-y-2">
+          <div class="flex justify-between items-start">
+            <h4 class="font-medium text-gray-900">{{ expense.name }}</h4>
+            <div class="flex space-x-2">
+              <button @click="editExpense(expense)" class="text-indigo-600 hover:text-indigo-900">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button @click="confirmDelete(expense)" class="text-red-600 hover:text-red-900">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="text-sm text-gray-600">{{ formatDate(expense.date) }}</div>
+          <div class="text-lg font-semibold text-gray-900">${{ expense.amount.toFixed(2) }}</div>
+        </div>
       </div>
     </div>
 
@@ -107,6 +116,9 @@
 import { ref, computed } from 'vue'
 import { useExpenseStore } from '../../stores/expense.js'
 import Modal from '../Shared/ModalComponent.vue'
+import InputField from '../Shared/InputField.vue'
+import Button from '../Shared/ButtonComponent.vue'
+import TableComponent from '../Shared/TableComponent.vue'
 
 const expenseStore = useExpenseStore()
 const selectedMonth = ref(new Date().toISOString().slice(0, 7))

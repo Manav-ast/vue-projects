@@ -1,9 +1,9 @@
 <template>
   <div
     v-show="isOpen"
-    class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
+    class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50 px-4"
   >
-    <div class="bg-white rounded-lg p-6 w-96 shadow-lg transform transition-all">
+    <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-md shadow-lg transform transition-all">
       <h3 class="text-xl font-semibold mb-4">{{ title }}</h3>
       <div class="text-gray-600 mb-4">
         <slot></slot>
@@ -58,8 +58,7 @@ defineEmits(['cancel', 'confirm'])
 .bg-white {
   background-color: white;
   border-radius: 0.5rem;
-  padding: 1.5rem;
-  width: 24rem;
+  width: 100%;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);

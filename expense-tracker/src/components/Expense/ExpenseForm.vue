@@ -1,7 +1,7 @@
 <!-- components/Expense/ExpenseForm.vue -->
 <template>
-  <form @submit.prevent="handleSubmit" class="mb-6">
-    <h2 class="text-xl text-center mt-6 mb-4">Expense Management</h2>
+  <form @submit.prevent="handleSubmit" class="mb-6 px-4 sm:px-0">
+    <h2 class="text-xl text-center mt-4 sm:mt-6 mb-4">Expense Management</h2>
 
     <SelectField
       id="expense-group"
@@ -37,12 +37,12 @@
       :error="errors.date"
     />
 
-    <div class="flex space-x-2">
-      <Button variant="primary" type="submit" class="flex-1">
+    <div class="flex flex-col sm:flex-row gap-3 sm:gap-2">
+      <Button variant="primary" type="submit" class="w-full sm:flex-1">
         {{ editMode ? 'Update Expense' : 'Add Expense' }}
       </Button>
 
-      <Button v-if="editMode" variant="secondary" @click="cancelEdit" class="flex-1">
+      <Button v-if="editMode" variant="secondary" @click="cancelEdit" class="w-full sm:flex-1">
         Cancel
       </Button>
     </div>

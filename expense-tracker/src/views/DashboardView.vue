@@ -14,16 +14,16 @@
       <div class="flex-1 sm:w-full md:w-3/4 p-4">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-xl font-semibold">Dashboard</h2>
-          <div class="flex gap-2">
+          <div class="flex flex-col sm:flex-row gap-2">
             <button
               @click="handlePDFExport"
-              class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
             >
               Export PDF
             </button>
             <button
               @click="handleCSVExport"
-              class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+              class="w-full sm:w-auto px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm"
             >
               Export CSV
             </button>

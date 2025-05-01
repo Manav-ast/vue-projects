@@ -9,8 +9,8 @@
   >
     <div
       v-if="show"
-      class="fixed bottom-4 right-4 z-50 pointer-events-auto flex w-full max-w-md rounded-lg shadow-lg"
-      :class="typeClasses"
+      class="fixed left-1/2 transform -translate-x-1/2 z-50 pointer-events-auto flex w-[calc(100%-2rem)] sm:w-full max-w-md rounded-lg shadow-lg sm:left-auto sm:right-4 sm:transform-none"
+      :class="[typeClasses, {'bottom-4': !isMobile, 'bottom-safe-4': isMobile}]"
     >
       <div class="w-0 flex-1 flex items-center p-4">
         <div class="w-full">
@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   show: {
@@ -52,6 +52,21 @@ const props = defineProps({
 
 defineEmits(['close'])
 
+const isMobile = ref(false)
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 640
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
+
 const typeClasses = computed(() => {
   switch (props.type) {
     case 'success':
@@ -65,3 +80,9 @@ const typeClasses = computed(() => {
   }
 })
 </script>
+
+<style scoped>
+.bottom-safe-4 {
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+</style>
