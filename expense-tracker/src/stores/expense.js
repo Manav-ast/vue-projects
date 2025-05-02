@@ -1,6 +1,6 @@
 // store/expense.js
 import { defineStore } from 'pinia'
-import api from '../config/api';
+import { fetchExpenses, createExpense, updateExpense as updateExpenseService, deleteExpense as deleteExpenseService } from '@/services/expenseService';
 import { useGroupStore } from './group.js';
 
 export const useExpenseStore = defineStore('expense', {
@@ -97,7 +97,7 @@ export const useExpenseStore = defineStore('expense', {
     async loadExpenses() {
       try {
         console.log('Loading expenses...')
-        const response = await api.get('/expenses')
+        const response = await fetchExpenses()
         if (response && response.data) {
           console.log('Received expenses:', response.data.expenses)
           // Use map to apply formatting and collect results
@@ -131,7 +131,7 @@ export const useExpenseStore = defineStore('expense', {
         )
 
         if (!isDuplicate) {
-          const response = await api.post('/expenses/store', expense)
+          const response = await createExpense(expense)
 
           if (response && response.data) {
             // Add the group name to the returned expense before adding it to our store
@@ -183,7 +183,7 @@ export const useExpenseStore = defineStore('expense', {
         const expenseId = oldExpense.id; // Use the ID from the original expense object
 
         // Update the expense via API, sending the payload from the form
-        const response = await api.patch(`/expenses/update/${expenseId}`, newExpensePayload);
+        const response = await updateExpenseService(expenseId, newExpensePayload);
 
         if (response && response.data) {
           // Format the expense with group name before updating the local array
@@ -227,7 +227,7 @@ export const useExpenseStore = defineStore('expense', {
         }
 
         const expenseId = expenseToDelete.id; // Get ID from the passed expense object
-        const response = await api.delete(`/expenses/delete/${expenseId}`);
+        const response = await deleteExpenseService(expenseId);
 
         if (response) {
           this.expenses.splice(index, 1)
@@ -255,27 +255,18 @@ export const useExpenseStore = defineStore('expense', {
 
     async sortExpenses(criteria) {
       try {
-        const response = await api.post('/expenses/sort', { criteria })
-
-        if (response && response.data) {
-          // Format expenses with group name
-          this.expenses = response.data.expenses.map(expense => this._formatExpense(expense));
-        } else {
-          // Fallback to client-side sorting if API fails
-          if (criteria === 'name') {
-            this.expenses.sort((a, b) => a.name.localeCompare(b.name))
-          } else if (criteria === 'amount') {
-            this.expenses.sort((a, b) => a.amount - b.amount)
-          }
-        }
-      } catch (error) {
-        console.log('Error sorting expenses:', error)
-        // Fallback to client-side sorting
+        // Perform client-side sorting since we don't have a sort endpoint
         if (criteria === 'name') {
           this.expenses.sort((a, b) => a.name.localeCompare(b.name))
         } else if (criteria === 'amount') {
-          this.expenses.sort((a, b) => a.amount - b.amount)
+          this.expenses.sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount))
+        } else if (criteria === 'date') {
+          this.expenses.sort((a, b) => new Date(b.date) - new Date(a.date))
         }
+        return { success: true }
+      } catch (error) {
+        console.error('Error sorting expenses:', error)
+        return { success: false, error: 'Failed to sort expenses' }
       }
     }
   }

@@ -1,7 +1,7 @@
 // store/group.js
 import { defineStore } from 'pinia'
 import { useExpenseStore } from './expense.js'
-import api from '../config/api.js'
+import { fetchGroups, createGroup, updateGroup as updateGroupService, deleteGroup as deleteGroupService } from '@/services/groupService'
 
 export const useGroupStore = defineStore('group', {
   state: () => ({
@@ -11,7 +11,7 @@ export const useGroupStore = defineStore('group', {
   actions: {
     async loadGroups() {
       try {
-        const response = await api.get('/groups')
+        const response = await fetchGroups()
         if (response && response.data) {
           this.groups = response.data.groups;
         }
@@ -23,7 +23,7 @@ export const useGroupStore = defineStore('group', {
     async addGroup(groupName) {
       try {
         if (!this.groups.some(g => g.name === groupName)) {
-          const response = await api.post('/groups/store', { name: groupName })
+          const response = await createGroup({ name: groupName })
           if (response && response.data) {
             this.groups.push(response.data.group)
             return { success: true }
@@ -46,7 +46,7 @@ export const useGroupStore = defineStore('group', {
         if (!this.groups.some(g => g.name === newGroupName)) {
           const group = this.groups.find(g => g.name === oldGroupName)
           if (group) {
-            const response = await api.patch(`/groups/update/${group.id}`, { name: newGroupName })
+            const response = await updateGroupService(group.id, { name: newGroupName })
 
             if (response && response.data) {
               group.name = newGroupName
@@ -73,7 +73,7 @@ export const useGroupStore = defineStore('group', {
           return { success: false, error: 'Group not found' }
         }
 
-        const response = await api.delete(`/groups/delete/${group.id}`)
+        const response = await deleteGroupService(group.id)
 
         if (response) {
           this.groups = this.groups.filter(g => g.id !== group.id)

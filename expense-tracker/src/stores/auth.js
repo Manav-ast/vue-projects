@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/config/api'
+import { login as loginService, register as registerService, logout as logoutService, fetchUser as fetchUserService } from '@/services/authService'
 
 export const useAuthStore = defineStore('auth', {
   state: () => {
@@ -25,10 +26,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const response = await api.post('/auth/login', {
-          email,
-          password
-        })
+        const response = await loginService({ email, password })
         this.token = response.data.token
         this.user = response.data.user
         localStorage.setItem('token', this.token)
@@ -46,7 +44,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const response = await api.post('/auth/register', {
+        const response = await registerService({
           name,
           email,
           password,
@@ -68,7 +66,7 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         if (this.token) {
-          await api.post('/auth/logout')
+          await logoutService()
         }
       } catch (error) {
         console.error('Logout error:', error)
@@ -85,7 +83,7 @@ export const useAuthStore = defineStore('auth', {
 
       this.loading = true
       try {
-        const response = await api.get('/auth/user')
+        const response = await fetchUserService()
         this.user = response.data
       } catch (error) {
         this.token = null
