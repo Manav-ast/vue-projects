@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ResponseHelper;
 use App\Http\Requests\StoreGroupRequest;
 use App\Models\Groups;
 use Illuminate\Http\Request;
@@ -20,17 +21,13 @@ class GroupsController extends Controller
     {
         try {
             $groups = Groups::where('user_id', Auth::id())->get();
-            return response()->json([
-                'groups' => $groups,
-            ]);
+            return ResponseHelper::success(['groups' => $groups]);
         } catch (Exception $e) {
             // Log the error for debugging purposes
             Log::error('Error fetching groups: ' . $e->getMessage());
 
             // Return a JSON response with a 500 status code
-            return response()->json([
-                'error' => 'An error occurred while fetching groups.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while fetching groups.');
         }
     }
 
@@ -42,15 +39,11 @@ class GroupsController extends Controller
 
             $group = Groups::create($validatedData);
 
-            return response()->json([
-                'group' => $group,
-            ], 201);
+            return ResponseHelper::success(['group' => $group], 'Group created successfully.', 201);
         } catch (Exception $e) {
             Log::error('Error creating group: ' . $e->getMessage());
 
-            return response()->json([
-                'error' => 'An error occurred while creating the group.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while creating the group.');
         }
     }
 
@@ -61,16 +54,11 @@ class GroupsController extends Controller
             $validatedData = $request->validated();
             $group->update($validatedData);
 
-            return response()->json([
-                'message' => 'Group updated successfully.',
-                'group' => $group,
-            ], 200);
+            return ResponseHelper::success(['group' => $group], 'Group updated successfully.');
         } catch (Exception $e) {
             Log::error('Error updating group: ' . $e->getMessage());
 
-            return response()->json([
-                'error' => 'An error occurred while updating the group.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while updating the group.');
         }
     }
 
@@ -80,15 +68,11 @@ class GroupsController extends Controller
             $group = Groups::where('user_id', Auth::id())->findOrFail($request->id);
             $group->delete();
 
-            return response()->json([
-                'message' => 'Group deleted successfully.',
-            ], 200);
+            return ResponseHelper::success([], 'Group deleted successfully.');
         } catch (Exception $e) {
             Log::error('Error deleting group: ' . $e->getMessage());
 
-            return response()->json([
-                'error' => 'An error occurred while deleting the group.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while deleting the group.');
         }
     }
 }

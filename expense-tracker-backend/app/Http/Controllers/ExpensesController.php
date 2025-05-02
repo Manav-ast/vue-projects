@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ResponseHelper;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Models\Expenses;
 use Exception;
@@ -23,17 +24,13 @@ class ExpensesController extends Controller
     {
         try {
             $expenses = Expenses::where('user_id', Auth::id())->get();
-            return response()->json([
-                'expenses' => $expenses,
-            ]);
+            return ResponseHelper::success(['expenses' => $expenses]);
         } catch (Exception $e) {
             // Log the error for debugging purposes
             FacadesLog::error('Error fetching expenses: ' . $e->getMessage());
 
             // Return a JSON response with a 500 status code
-            return response()->json([
-                'error' => 'An error occurred while fetching expenses.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while fetching expenses.');
         }
     }
 
@@ -45,17 +42,13 @@ class ExpensesController extends Controller
 
             $expense = Expenses::create($validatedData);
 
-            return response()->json([
-                'expense' => $expense,
-            ]);
+            return ResponseHelper::success(['expense' => $expense], 'Expense created successfully.', 201);
         } catch (Exception $e) {
             // Log the error for debugging purposes
             FacadesLog::error('Error creating expense: ' . $e->getMessage());
 
             // Return a JSON response with a 500 status code
-            return response()->json([
-                'error' => 'An error occurred while creating the expense.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while creating the expense.');
         }
     }
 
@@ -72,18 +65,13 @@ class ExpensesController extends Controller
             // Update the expense with the validated data
             $expense->update($validatedData);
 
-            return response()->json([
-                'message' => 'Expense updated successfully.',
-                'expense' => $expense,
-            ], 200);
+            return ResponseHelper::success(['expense' => $expense], 'Expense updated successfully.');
         } catch (Exception $e) {
             // Log the error for debugging purposes
             FacadesLog::error('Error updating expense: ' . $e->getMessage());
 
             // Return a JSON response with a 500 status code
-            return response()->json([
-                'error' => 'An error occurred while updating the expense.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while updating the expense.');
         }
     }
 
@@ -93,16 +81,12 @@ class ExpensesController extends Controller
             $expense = Expenses::findOrFail($request->id);
             $expense->delete();
 
-            return response()->json([
-                'message' => 'Expense deleted successfully.',
-            ], 200);
+            return ResponseHelper::success([], 'Expense deleted successfully.');
         } catch (Exception $e) {
             // Log the error for debugging purposes
             FacadesLog::error('Error deleting expense: ' . $e->getMessage());
 
-            return response()->json([
-                'error' => 'An error occurred while deleting the expense.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while deleting the expense.');
         }
     }
 
@@ -149,9 +133,7 @@ class ExpensesController extends Controller
             ]);
         } catch (Exception $e) {
             FacadesLog::error('Error exporting PDF: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            return response()->json([
-                'error' => 'An error occurred while generating the PDF: ' . $e->getMessage(),
-            ], 500);
+            return ResponseHelper::error('An error occurred while generating the PDF: ' . $e->getMessage());
         }
     }
 
@@ -162,15 +144,10 @@ class ExpensesController extends Controller
             $csvPath = 'csv/' . $fileName;
             Excel::store(new ExpensesExport(), $csvPath, 'public');
 
-            return response()->json([
-                'success' => true,
-                'file_url' => asset('storage/' . $csvPath)
-            ]);
+            return ResponseHelper::success(['file_url' => asset('storage/' . $csvPath)], 'CSV exported successfully.');
         } catch (Exception $e) {
             FacadesLog::error('Error exporting expenses: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'An error occurred while exporting expenses.',
-            ], 500);
+            return ResponseHelper::error('An error occurred while exporting expenses.');
         }
     }
 }
