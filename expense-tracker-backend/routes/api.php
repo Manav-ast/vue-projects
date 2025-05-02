@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExpensesController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatGPTController;
+use App\Http\Controllers\AiCommandController;
+use App\Http\Controllers\CommandController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,4 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ChatGPT routes
     Route::post('/chatgpt/command', [ChatGPTController::class, 'processCommand']);
+
+    // AI command routes
+    Route::post('/ai/command', [AiCommandController::class, 'processCommand']);
+
+    Route::post('/command', [CommandController::class, 'handle']);
 });
